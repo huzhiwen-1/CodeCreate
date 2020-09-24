@@ -1,0 +1,142 @@
+﻿
+define(function (require, exports, module) {
+    require('/frontend/js/plugin/grid.js');
+    require('/frontend/js/lib/template.js');
+    require('/frontend/js/lib/overall.js'); 
+    require('/frontend/js/lib/dialog');
+	require('/frontend/js/plugin/dataTitle.js') 
+    var dialogPlus = require('/frontend/js/lib/artDialog/src/dialog-plus.js');
+    var ${ClassNameEntityJs}Grid = $('#data_grid'), btnSearch = $('#btn_search'),searchCon = $('#search_con'), _deletedTemp = $('#deleted_info').html();
+    #set($JQ="$.")
+ 
+    var cache = {
+       
+    };
+    var request = function (options) {
+        return O.ajaxEx(options).error(function () {
+            ${JQ}topTips({ mode: "warning", tip_text:"出现异常" });
+        });
+    };
+    ${ClassNameEntityJs}Grid.show();
+    var curid;
+    var load = function (queryType) {
+        ${ClassNameEntityJs}Grid.find('tbody').html('<tr><td colspan="' + ${ClassNameEntityJs}Grid.find('thead tr.on th').length + '" class="align-c" style="height:70px;">正在加载数据...</td></tr>');
+        if (cache.view) {
+            cache.view.search();
+        } else {
+            cache.view = ${ClassNameEntityJs}Grid.grid({
+                idField: '${PrivatyKey}',
+                templateid: '${ClassNameEntityJs}_gridrow_template',
+                pagesize: 20,
+                emptyText: '无数据',
+                method: 'get',
+                queryParams: function () {
+                    var paramEls = searchCon.find('.form-control:visible');
+                    cache.params = {}; 
+                    paramEls.each(function (i) {
+                        var el = paramEls.eq(i);
+                        cache.params[el.attr('name')] = el.val();
+                    });
+                    return ${JQ}param(cache.params);
+                },
+                getReadURL: function () {
+                    var strurl = "/${ControllerName}/GetList";
+                    return O.path(strurl);
+                },
+                sortEvent: function () {
+
+                },
+                filter: function (model) {
+                   
+                },
+                loaded: function (data) {
+                    cache.total = data.total;
+                },
+                rowClick: function (model) {
+
+                },
+                rowCheckEvent: function (model) {
+
+                }
+            });
+        }
+    };
+
+
+    /**
+     * 其他绑定事件
+     */
+    function initBindEvents() {
+        
+        $('body').on('click', '.opt-deleted', function () {
+            curid = $(this).attr("data-id");
+              ${JQ}pt({
+                target: this,
+                width: 286,
+                position: 'b',
+                align: 'c',
+                autoClose: false,
+                leaveClose: false,
+                content: Template(_deletedTemp)
+            });
+        });
+        $('body').on('click', '.tips-wrap .deleted-oper', function () {
+            var $this = $(this);
+            if ($this.hasClass('bg-green')) {
+                O.ajaxEx({
+                    type: 'get',
+                    url: O.path('/${ControllerName}/deleted?id=' + curid),
+                    success: function (data) {
+                        if (data.Success) {
+                            load();
+                            $('.pt').hide();
+                        } else if(data.Message){
+                                _showTips(data.Message);
+                            }
+                            $('.pt').hide();
+                        
+                    },
+                    error: function () {
+
+                        $('.pt').hide();
+                    }
+                });
+            } else {
+                $('.pt').hide();
+            }
+        });
+
+        var _showTips = function (tip) {
+            var d =  ${JQ}tips(tip);
+            setTimeout(function () {
+                d.close().remove();
+            }, 5000);
+        };
+
+    }
+
+    
+    btnSearch.off('click').on('click', function () {
+        load();
+    });
+
+
+    searchCon.off('keyup').on('keyup', '.form-control', function (e) {
+        if (e.keyCode == 13) {
+            load();
+        }
+    });
+
+    /**
+     * 初始化
+     */
+    function init() {
+        //绑定页面事件
+        initBindEvents();
+        load();
+    }
+
+    return {
+        init: init
+    }
+});

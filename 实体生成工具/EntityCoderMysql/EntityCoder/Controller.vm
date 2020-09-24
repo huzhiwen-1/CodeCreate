@@ -1,0 +1,145 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using HFramework.Utility;
+using ${nameSpace}.Entity;
+using ${nameSpace}.Services;
+using ${nameSpace}.Models; 
+
+
+namespace  ${nameSpace}.Web.Controllers
+{   
+    [CheckLogin(true)]
+	public class ${ControllerName}Controller: BaseController
+	{  
+	    public ActionResult Index()
+        {
+            return View();
+        }
+        /// <summary>
+        /// 获取列表
+        /// </summary>
+        /// <param name="Page"></param>
+        /// <param name="PageSize"></param>
+        /// <param name="keyword"></param>
+        /// <returns></returns>
+        public ActionResult GetList(int Page, int PageSize,string keyword="")
+        {
+            try
+            {
+                var result = ${ClassNameEntity}Service.GetList(Page, PageSize, keyword);
+                return FromateJson(result, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                LogManagers.AddError(ex.Message, ex.StackTrace, "${ControllerName}ListError");
+            }
+            return Json(new { total = 0, items = new List<$ClassNameEntity>() }, JsonRequestBehavior.AllowGet);
+        }
+        /// <summary>
+        /// 新增&编辑
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public ActionResult Add(string id = "")
+        { 
+            $ClassNameEntity obj = new $ClassNameEntity(); 
+            if (!string.IsNullOrEmpty(id))
+            {
+                obj =  ${ClassNameEntity}Service.GetEntity(id);
+            }
+            ViewData["${ClassNameEntity}"] = obj;
+            return View();
+        } 
+        /// <summary>
+        /// 保存数据
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public ActionResult Save(${ClassNameEntity}Form model)
+        {
+            Result result = new Result(false, "数据保存失败");
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                   $ClassNameEntity obj ;
+                    bool isNew = false;
+                    if (string.IsNullOrEmpty(model.${PrivatyKey}))
+                    {
+                        obj = new $ClassNameEntity();
+                        isNew = true;
+                    }
+                    else
+                    {
+                        obj = ${ClassNameEntity}Service.GetEntity(model.${PrivatyKey}); 
+                    }                
+                    //模型数据拷贝到实体
+                    model.CopyToMyEntity(obj);
+                    //校验是否唯一
+                   // if (${ClassNameEntity}Service.CheckOnly(obj.xxx, "列名", obj.${PrivatyKey}))
+                   // {
+                   //     result.Message = "该编码已存在!";
+                   //     return Json(result, JsonRequestBehavior.AllowGet);
+                   // }    
+                    if (${ClassNameEntity}Service.Save${ClassNameEntity}(obj, isNew))
+                    {
+                        result.Message = "保存成功";
+                        result.Success = true;
+                        result.Code = 0;
+                        result.Obj = obj.${PrivatyKey};
+                    }
+                }
+                else
+                {
+                    //获取所有数据检验不成功集合
+                    List<BrokenRule> errors = model.IsValid();
+                    if (errors.Count > 0)
+                    {
+                        result.Message = errors[0].Key + errors[0].Message;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManagers.AddError(ex.Message, ex.StackTrace, "Save${ClassNameEntity}Error");
+                result.Message = "服务异常";
+                result.Code = 2;
+            }
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public ActionResult Deleted(string id)
+        {
+            Result result = new Result(false, "数据删除失败");
+			try
+            {
+				if (string.IsNullOrEmpty(id))
+				{
+					result.Message = "${PrivatyKey} 不能为空";
+					return Json(result, JsonRequestBehavior.AllowGet);
+				}    
+				if (${ClassNameEntity}Service.Deleted(id))
+				{
+					result.Code = 0;
+					result.Message = "";
+					result.Success = true;
+				}
+			}
+            catch (Exception ex)
+            {
+                LogManagers.AddError(ex.Message, ex.StackTrace, "Deleted${ClassNameEntity}Error");
+                result.Message = "服务异常";
+                result.Code = 2;
+            }
+            return Json(result, JsonRequestBehavior.AllowGet);
+        } 
+   }
+}

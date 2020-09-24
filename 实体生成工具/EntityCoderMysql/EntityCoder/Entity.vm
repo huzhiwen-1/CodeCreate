@@ -1,0 +1,32 @@
+﻿using System;
+using System.Text;
+using System.Collections.Generic;
+using HFramework.Utility;
+using System.Data;
+using System.Data.SqlClient;
+using System.Data.Common;
+
+namespace  ${nameSpace}.Entity
+{
+	[Table("$TableName")] public class $ClassName : MyEntity
+	{ 
+#foreach( $Property in $Propertys )
+		private $Property.Type #if( $Property.IsNull )? #end _$Property.Name;
+		/// <summary>
+		/// $Property.Remark
+		/// </summary>
+#if( $Property.IsKey )
+		[Column("$Property.Name()",true)]
+#else##
+		[Column("$Property.Name()")]
+#end##		
+		public $Property.Type #if( $Property.IsNull )? #end $Property.Name {
+			get{ return  _$Property.Name;}
+			set{_$Property.Name = value;} 
+		}  
+#end##
+		public $ClassName()
+        { 
+        } 
+   }
+}

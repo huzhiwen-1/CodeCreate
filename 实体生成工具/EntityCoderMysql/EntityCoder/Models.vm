@@ -1,0 +1,29 @@
+﻿using System;
+using System.Text;
+using System.Collections.Generic;
+using HFramework.Utility;
+using System.Data;
+using System.Data.SqlClient;
+using System.Data.Common;
+using ${nameSpace}.Entity;
+using HFramework.Utility;
+using System.ComponentModel.DataAnnotations;
+
+namespace  ${nameSpace}.Models
+{
+	public class ${ClassName}Form : ModelBase
+	{ 
+#foreach( $Property in $ViewPropertys )##
+		/// <summary>
+		/// $Property.Remark
+		/// </summary>
+#if(  $Property.ModelCheckNull )  
+		[Required(ErrorMessage = "${Property.Remark}不能为空", AllowEmptyStrings = false)] 
+#end##
+		public $Property.Type #if( $Property.IsNull )? #end $Property.Name {
+			get;
+			set; 
+		}  
+#end##
+   }
+}

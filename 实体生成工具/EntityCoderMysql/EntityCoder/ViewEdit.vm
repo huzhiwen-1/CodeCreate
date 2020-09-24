@@ -1,0 +1,123 @@
+﻿@using ${nameSpace}.Entity;
+@{
+    ViewBag.Title = "Add";
+}
+
+@section header{
+    <link rel="stylesheet" href="/frontend/css/global.css" />
+    <link href="/frontend/css/page/page.css" rel="stylesheet">
+    <link href="/frontend/css/edit.css" rel="stylesheet"> 
+}
+
+@{
+    $ClassNameEntity obj = ($ClassNameEntity)ViewData["${ClassNameEntity}"]; 
+    bool IsEdit = (obj == null || string.IsNullOrEmpty(obj.${PrivatyKey})) ? false : true; 
+}
+<div class="manage-content">
+    <input type="hidden" value="@IsEdit" id="is_edit" /> 
+    <div class="padding">
+        <h4 class="manage-title">XX管理</h4>
+    </div>
+    <div class="page-nav title-bottom" style="margin-bottom:0px;">
+        <a href="/${ControllerName}/index" class="icon-merge icon-goback" title="返回上一层">返回上一层</a>
+        <a href="/${ControllerName}/index" class="td-u">xx管理</a> / @if (IsEdit)
+        {<span>编辑XX</span>}
+        else
+        {<span>新增XX</span>}
+    </div>
+    <div class="page-con clearfix" style="margin-top:10px;">
+        <form id="form_data" class="m40">
+            <input type="hidden" value="@obj.${PrivatyKey}" id="${PrivatyKey}" name="${PrivatyKey}" /> 
+#set($a = 1)
+#foreach( $Property in $ViewPropertys )
+#if($Property.IsKey==false)
+#if($a==1)
+#set($a=0)
+			<div class="mb18 clearfix"> 
+#if($Property.Type=="string" && $Property.MaxLength>=500)	
+					<span class="w70 fl">$Property.Remark2：</span> 		
+					<textarea id="${Property.Name}" name="${Property.Name}"  class="inp-textarea" style="height:80px" >@obj.${Property.Name}</textarea>
+			</div>
+#set($a=1)
+#else
+				<dl class="inline-block category">
+					<div>
+						<span class="w140 fl">$Property.Remark2：</span> 
+#if($Property.Type=="string" && $Property.MaxLength<500)
+						<input type="text" name="${Property.Name}" id="${Property.Name}" class="inp-set" value="@obj.${Property.Name}"  
+#if($Property.MaxLength>0)
+						 maxlength="${Property.MaxLength}" />
+#else 
+						/> 
+
+#end##	  				
+#elseif($Property.Type=="DateTime")	 
+						<input type="text" name="${Property.Name}" id="${Property.Name}"  class="Wdate inp-set"  value="@obj.${Property.Name}"  />
+#elseif($Property.Type=="int")
+						<input type="text" name="${Property.Name}" id="${Property.Name}"  class="inp-set"  value="@obj.${Property.Name}"  onpaste="return false;"
+						 onkeypress="return (/[\d.]/.test(String.fromCharCode(event.keyCode)))" onkeyup="value=value.replace(/[^\d]/g,'')"/>
+#elseif($Property.Type=="double")
+						<input type="text" name="${Property.Name}" id="${Property.Name}"  class="inp-set"  value="@obj.${Property.Name}"  onpaste="return false;"
+						 onkeypress="return (/[\d.]/.test(String.fromCharCode(event.keyCode)))" onkeyup="value=value.replace(/[^\d.]/g,'')" />
+#end##
+					</div>
+				</dl>
+#if($Property.IsEnd)
+			</div> 
+#end##
+#end##
+
+#else##
+
+#if($Property.Type=="string" && $Property.MaxLength>=500)	
+			</div>
+			<div class="mb18 clearfix"> 
+				<span class="w70 fl">$Property.Remark2：</span> 		
+				<textarea id="${Property.Name}" name="${Property.Name}"  class="inp-textarea" style="height:80px" >@obj.${Property.Name}</textarea>	 
+#else
+			 <dl class="inline-block category">
+				<div>
+					<span class="w140 fl">$Property.Remark2：</span> 
+#if($Property.Type=="string" && $Property.MaxLength<500)
+						<input type="text" name="${Property.Name}" id="${Property.Name}" class="inp-set" value="@obj.${Property.Name}"  
+#if($Property.MaxLength>0)
+						 maxlength="${Property.MaxLength}" />
+#else 
+						/> 
+
+#end##	
+#elseif($Property.Type=="DateTime")	 
+						<input type="text" name="${Property.Name}" id="${Property.Name}"  class="Wdate inp-set"  value="@obj.${Property.Name}"  />
+#elseif($Property.Type=="int")
+						<input type="text" name="${Property.Name}" id="${Property.Name}"  class="inp-set"  value="@obj.${Property.Name}"  onpaste="return false;"
+						 onkeypress="return (/[\d.]/.test(String.fromCharCode(event.keyCode)))" onkeyup="value=value.replace(/[^\d]/g,'')"/>
+#elseif($Property.Type=="double")
+						<input type="text" name="${Property.Name}" id="${Property.Name}"  class="inp-set"  value="@obj.${Property.Name}"  onpaste="return false;"
+						 onkeypress="return (/[\d.]/.test(String.fromCharCode(event.keyCode)))" onkeyup="value=value.replace(/[^\d.]/g,'')" />
+#end##
+				</div>
+			</dl>
+#end##
+		</div>
+#set($a=1)
+#end              
+#end
+#end
+          
+        </form>
+    </div>
+    <div class="submit clearfix" style="text-align:center;padding-top:30px;">
+        <button class="btn-pr bg-green color-white" style="width: 166px;" id="submit_btn">保存</button>
+    </div>
+</div> 
+@section scripts{
+    <script type="text/javascript">
+        seajs.use('/js/${ControllerName}/add', function (add) {
+            add.init();
+        }); 
+    </script>
+}
+
+
+
+ 

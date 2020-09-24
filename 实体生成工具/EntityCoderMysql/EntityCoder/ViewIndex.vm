@@ -1,0 +1,96 @@
+﻿@{
+    ViewBag.Title = "XX管理";
+} 
+@section header{
+    <link rel="stylesheet" href="/frontend/css/global.css" />
+    <link href="/frontend/css/page/page.css" rel="stylesheet">
+    <style>
+        .tab-nav li {
+            margin: 0;
+            padding: 0;
+        }
+
+        .search-con .search:before {
+            display: inline-block;
+            content: '';
+        }
+
+        .search-con li {
+            margin-bottom: 0;
+        }
+
+        .bg-green {
+            padding: 5px 30px;
+        }
+    </style>
+}
+<div class="manage-content">
+    <div class="padding">
+        <h4 class="manage-title">XX管理</h4>
+    </div> 
+    <div class="padding grid">
+        <ul class="form search-con clearfix" id="search_con">
+            <li class="name">
+                <span style="display: inline-block">查询条件</span>
+                <input type="text" class="form-control searchinput" id="keyword" name="keyword" placeholder="查询条件" style="display: inline-block;width: 160px;margin-left: 5px">
+            </li> 
+            <li class="search">
+                <a href="javascript:;" class="btn-pr  bg-green color-white" id="btn_search">
+                    <span>搜索</span>
+                </a>
+            </li>
+            <div class="add-btn clearfix" style="padding-top: 0">
+                <a class="btn-pr bg-green color-white" href="/${ControllerName}/add" id="add_${ClassNameEntity}_btn">
+                    <span class="icon-merge add"></span><span>新增</span>
+                </a>
+            </div>
+        </ul>
+        <div class="grid-content clearfix" id="data_grid">
+            <table class="table">
+                <thead>
+                    <tr class="table table-hover on">
+#foreach( $Property in $Propertys ) 
+	#if($Property.IsKey==false)
+						<th width="80">$Property.Remark2</th> 
+	#end##
+#end##
+                        <th width="60">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="$PropertysLength" style="height:70px;text-align: center;">请先搜索</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!--用户列表模板-->
+    <script type="text/template" id="${ClassNameEntityJs}_gridrow_template">
+#foreach( $Property in $Propertys ) 
+	#if($Property.IsKey==false)
+        <td><%- __data.${Property.Name}||'' %></td>
+    #end
+#end##
+        <td>
+            <a href="/${ControllerName}/add?id=<%-__data.${PrivatyKey}%>" data-id="<%-__data.${PrivatyKey}%>" class="opt-btn opt-editrental">编辑</a><br/>
+            <a href="javascript:;" class="opt-btn opt-deleted" data-id="<%-__data.${PrivatyKey}%>">删除</a>
+        </td>
+    </script>
+
+    <script type="text/template" id="deleted_info">
+        <div class="tips-wrap">
+            <div class="delete-info">确定删除？</div>
+            <button class="btn-pr btn-refund bg-green color-white deleted-oper">确定</button>
+            <button class="btn-pr btn-refund bg-white deleted-oper fr">取消</button>
+        </div>
+    </script>
+</div>
+@section scripts{
+    <script type="text/javascript">
+        seajs.use('/js/${ControllerName}/index', function (index) {
+            index.init();
+        }); 
+    </script>
+} 
+
+
+

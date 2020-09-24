@@ -1,0 +1,132 @@
+﻿define(function (require, exports, module) {
+    require('form');
+    require('/frontend/js/lib/dialog');
+    require('/frontend/js/lib/tooltips/tooltips');
+    require('/frontend/3rd/laydate/laydate');
+	require('/frontend/js/plugin/dataTitle.js')
+    window.Template = require('/frontend/js/lib/template');
+    window.DataValid = require('/frontend/js/lib/validate');
+	 #set($JQ="$.")
+    var $form = $('#form_data');
+    var _isEdit = $('#is_edit').val(), _id, _initDate;   
+    //事件绑定
+    var _bindEvent = function () { 
+        //发布按钮
+        $('#submit_btn').on('click', function () {
+            if (_doCheck()) {
+                $(this).attr("disabled", "true").removeClass("bg-green").addClass("color-gray");
+                var curEle = $(this);
+                var data = _getData();//获得数据
+                O.ajaxEx({
+                    type: 'post',
+                    data: data,
+                    url: '/${ControllerName}/save',
+                    success: function (data) {
+                        if (data.Success) {
+                            $(window).off('beforeunload');//$(window)当前浏览器的窗口  关闭beforeunload事件
+                            location.href = '/${ControllerName}/index'//location.href本页面跳转
+                        } else {
+                            curEle.removeAttr("disabled").removeClass("color-gray").addClass("bg-green");
+                            _showTips(data.Message);//_showTips（）显示信息的方法
+                        }
+                    },
+                    error: function () {
+                        _showTips('网络错误');
+                    }
+                });
+            } else {
+                return false;
+            }
+        });
+
+        $(window).on('beforeunload', function (e) {
+            if (!O.compare(_initDate, _getData())) {
+                return '离开后，刚刚填写数据会丢失';
+            }
+        });
+    };
+
+    //获取得到的数据  提交数据用
+    var _getData = function () {
+        var seri = '';
+        seri = O.serialize($form, 2);//整个右侧DIV表单序列化 
+        //seri.img_url =  $(".js-img").attr("src")?$(".js-img").attr("src"):"";         
+        return seri;
+    }
+    var _showTips = function (tip) {
+        var d =  ${JQ}tips(tip);//输出信息
+        setTimeout(function () {
+            d.close().remove();
+        }, 2000);
+    }
+    //验证配置、规则
+    var _checkCfg = {
+        config: function ()
+		 {//通过config接口注入权限验证配置
+            return [
+#foreach( $Property in $ViewPropertys )
+#if($Property.ModelCheckNull)
+			{
+				id: '${Property.Name}',
+				msg: {
+					empty: '请输入${Property.Remark2}'
+				},
+				fun: function () {
+					var val = $('#${Property.Name}').val();
+					if (val.length === 0) {
+						return 'empty';
+					}
+				}
+			},
+#end##
+#end##
+			]
+        }
+    };
+    var _doCheck = function () {//校验函数  
+        if (_validate.fieldList.length === 0) {//
+            _validate.addFields(_checkCfg.config());
+        }
+        if (!_validate.process(false)) {//
+            var id = _validate.errorField.split(',')[1];//? 
+            $('#' + id)[0].scrollIntoView();//之后添加效果  解决抛锚定位时页面整体往上跳的问题
+            return false;
+        } 
+        return true;
+    };
+
+#set($aa=1)
+    //日期控件调用
+    var option = {
+#foreach($Property in $ViewPropertys)
+#if($Property.Type=="DateTime")
+        odate${aa}: {
+            elem: '#${Property.Name}',
+            format: 'YYYY-MM-DD',
+            istime: false,
+            isclear: true,
+            choose: function (datas) { 
+            }
+        },
+#set($aa=$aa+1)
+#end##
+#end##
+    };
+#set($aa=1)
+#foreach($Property in $ViewPropertys)
+#if($Property.Type=="DateTime")
+    laydate(option.odate${aa});
+	#set($aa=1+$aa)
+#end##
+#end##
+
+    var _init = {
+        init: function () {//初始化函数
+          
+            _bindEvent();//绑定事件调用  
+            _validate = new DataValid('<p class="color-red1">{errorHtml}</p>'); 
+            _initDate = _getData();
+        }
+    };
+    return _init;
+});

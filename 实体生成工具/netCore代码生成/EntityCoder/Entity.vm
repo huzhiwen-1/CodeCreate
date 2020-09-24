@@ -1,0 +1,24 @@
+﻿using System;
+using Slisoft.Utility;
+
+namespace  ${nameSpace}.Entity
+{
+	[MyTable("$TableName")] public class $ClassName : MyEntity
+	{ 
+		#foreach( $Property in $Propertys )
+        private $Property.Type #if( $Property.IsNull )? #end _$Property.Name;
+		/// <summary>
+		/// $Property.Remark
+		/// </summary>
+		#if( $Property.IsKey )[MyColumn("$Property.Name()",true)]#else [MyColumn("$Property.Name()")] #end 
+		
+		public $Property.Type #if( $Property.IsNull )? #end $Property.Name {
+			get{ return  _$Property.Name;}
+			set{_$Property.Name = value;} 
+		}  
+		#end 
+		public $ClassName()
+        { 
+        } 
+   }
+}

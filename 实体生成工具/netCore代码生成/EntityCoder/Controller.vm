@@ -1,0 +1,167 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using ${nameSpace}.Entity;  
+using ${nameSpace}.Interface;
+using ${nameSpace}.Models;
+using Slisoft.Utility; 
+using ${nameSpace}.Models.Session;
+
+namespace ${nameSpace}.Controllers
+{
+    [CheckLogin(true)]
+    public class ${ControllerName}Controller : BaseController
+    {
+        private readonly ILogger<${ControllerName}Controller> _logger;
+        private I${ClassNameEntity}Service _${ClassNameEntity}Service;
+        public ${ControllerName}Controller(ILogger<${ControllerName}Controller> logger, I${ClassNameEntity}Service ${ClassNameEntity}Service)
+        {
+            _logger = logger;
+            _${ClassNameEntity}Service =${ClassNameEntity}Service;
+        }
+
+        
+        public IActionResult Index()
+        {
+            return View();
+        }
+        /// <summary>
+        /// 获取列表数据
+        /// </summary>
+        /// <param name="page"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="keyWord"></param>
+        /// <returns></returns>
+        public IActionResult GetList(int page, int pageSize, string keyWord = "")
+        {
+            Result ar = new Result(false,"获取失败");
+            try
+            {
+                if (page <= 0)
+                {
+                    page = 1;
+                }
+                if (pageSize <= 10)
+                {
+                    pageSize = 10;
+                }
+                ar.Obj = _${ClassNameEntity}Service.GetList(page, pageSize, keyWord);
+                ar.Message = "获取成功";
+                ar.Code = 0;
+                ar.Success = true; 
+                return Json(ar);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "${ControllerName}GetList");
+            }
+               return Json(ar);
+        }
+
+
+        /// <summary>
+        /// 新增
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public IActionResult Add(string id = "")
+        {
+
+            ${ClassNameEntity} obj = new ${ClassNameEntity}();
+            if (!string.IsNullOrEmpty(id))
+            {
+             obj= _${ClassNameEntity}Service.GetEntity(Guid.Parse(id));
+            }
+            ViewData["PUser"] = obj;
+            return View();
+        }
+        /// <summary>
+        /// 保存数据
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public IActionResult Save(${ClassNameEntity}Form model)
+        {
+            Result ar = new Result(false, "保存失败");
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    //获取所有数据检验不成功集合
+                    List<BrokenRule> errors = model.IsValid();
+                    if (errors.Count > 0)
+                    {
+                        ar.Message = errors[0].Key + errors[0].Message;
+                    }
+                    return Json(ar);
+                }
+                ${ClassNameEntity} obj = new ${ClassNameEntity}();
+                bool isNew = false;
+                if (model.${PrivatyKey} == null || model.${PrivatyKey} == Guid.Empty)
+                {
+                    isNew = true;
+                }
+                else
+                {
+                    obj = _${ClassNameEntity}Service.GetEntity(model.${PrivatyKey});
+                }
+                model.CopyToMyEntity(obj);
+                HttpContextSession hcs = GetSession();
+               // if (_${ClassNameEntity}Service.CheckOnly("UserCode",obj.UserCode,obj.${PrivatyKey}))
+               // {
+               //     ar.Message = "该编码已存在!";
+               //     return Json(ar);
+               // }
+                if (_${ClassNameEntity}Service.Save${ControllerName}(obj, hcs, isNew))
+                {
+                    ar.Message = "保存成功";
+                    ar.Obj = obj.${PrivatyKey};
+                    ar.Success = true;
+                    ar.Code = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "${ControllerName}Save");
+            }
+            return Json(ar);
+        }
+
+
+        /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <param name="id">数据主键</param>
+        /// <returns></returns>
+        public IActionResult Deleted(Guid id)
+        {
+            Result ar = new Result(false, "删除失败");
+            try
+            {
+                if (id==Guid.Empty)
+                {
+                    ar.Code = 1;
+                    ar.Message = "${PrivatyKey} 不能为空";
+                    return Json(ar);
+                }
+                HttpContextSession hcs = GetSession();
+                if (_${ClassNameEntity}Service.Deleted(id))
+                {
+                    ar.Code = 0;
+                    ar.Message = "操作成功！";
+                    ar.Success = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "${ControllerName}Deleted");
+            }
+            return Json(ar);
+        }
+
+    }
+}

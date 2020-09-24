@@ -1,0 +1,107 @@
+﻿using System;
+using System.Text;
+using System.Collections.Generic;
+using HFramework.Utility;
+using System.Data;
+using System.Data.SqlClient;
+using System.Data.Common;
+using ${nameSpace}.Entity;
+namespace  ${nameSpace}.Repositories
+{
+	 public class $ClassName 
+	{ 
+	  
+		/// <summary>
+        /// 查询实体
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static $ClassNameEntity GetEntity(string id)
+        {
+            return new $ClassNameEntity().GetDB().FindOne<$ClassNameEntity>(id);
+        }
+        /// <summary>
+        /// 插入数据
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static bool Insert($ClassNameEntity obj)
+        {
+            return new $ClassNameEntity().GetDB().Insert<$ClassNameEntity>(obj);
+        }
+        /// <summary>
+        /// 更新数据 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static bool Update($ClassNameEntity obj)
+        {
+            return new $ClassNameEntity().GetDB().Update<$ClassNameEntity>(obj);
+        }
+		 /// <summary>
+        /// 删除数据 
+        /// </summary>
+        /// <param name="ID"></param>
+        /// <returns></returns>
+		 public static bool Deleted(string ID) 
+        { 
+            bool result = new $ClassNameEntity().GetDB().DeleteByID<$ClassNameEntity>(ID);
+            if (result) 
+            {
+                return true;
+            }
+            return false;
+        }
+
+		 /// <summary>
+         /// 校验列唯一
+         /// </summary>
+         /// <param name="value">值</param>
+         /// <param name="col">列</param>
+         /// <param name="id">ID</param>
+         /// <returns></returns>
+		 public static bool CheckOnly(string value, string col, string id = "")
+         {
+             string sql = string.Format("select count(*) from ${TableName} where {0}=@Value ", col);
+             if (!string.IsNullOrEmpty(id))
+             {
+                 sql += " AND ${PrivatyKey}<> @ID";
+             }
+             int i = new $ClassNameEntity().GetDB().ExecuteScalar<int>(sql, new { Value = value, ID = id });
+             if (i > 0)
+             {
+                 return true;
+             }
+             return false;
+         } 
+
+		 /// <summary>
+         /// 查询列表数据
+         /// </summary>
+         /// <param name="Skip"></param>
+         /// <param name="PageSize"></param>
+         /// <param name="keyword"></param>
+         /// <param name="gpsno"></param>
+         /// <returns></returns>
+         public static ResultList GetList(int Skip, int PageSize,string keyword="")
+         {  
+             ResultList rl = new ResultList();
+             string strWhere = "1=1 "; 
+             if (!string.IsNullOrEmpty(keyword))
+             {
+                // strWhere += " AND Name like '%' + @KeyWord +'%' ";
+             }
+              IDbConnection conn = new $ClassNameEntity().GetDB();
+             string sql = @"SELECT * FROM (
+                        SELECT  *,
+                                ROW_NUMBER()OVER(ORDER BY ${PrivatyKey}) AS RowNum 
+                          FROM  ${TableName}   
+                          where (1=1) 
+                        ) AS bb WHERE bb.RowNum >= @Skip AND bb.RowNum<=@PageEnd ";
+             rl.items =conn.Query<$ClassNameEntity>(sql.Replace("1=1", strWhere), new { Skip = Skip, PageEnd = Skip + PageSize - 1, KeyWord = keyword });
+             object o = conn.ExecuteScalar(@"SELECT count(*) FROM ${TableName}  where (1=1) ".Replace("1=1", strWhere), new {  KeyWord = keyword });
+             rl.total = Convert.ToInt32(o);
+             return rl;
+         }
+   }
+}

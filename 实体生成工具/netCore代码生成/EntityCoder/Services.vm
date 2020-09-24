@@ -1,0 +1,156 @@
+﻿using Pension.Interface;
+using System;
+using Slisoft.Utility.Extend;
+using ${nameSpace}.Entity; 
+using ${nameSpace}.Models.Session; 
+using System.Collections.Generic;
+using System.Linq;
+using DapperExtensions;
+using Slisoft.Utility;  
+using System.Data;
+using Dapper;
+
+ 
+
+namespace  ${nameSpace}.Service
+{
+	public class $ClassName:BaseService,I${ClassName} 
+	{ 	  
+		public $ClassName(ICustomConnectionFactory factory) : base(factory)
+        { 
+        }
+
+		 /// <summary>
+        /// 获取实体
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public ${ClassNameEntity} GetEntity(Guid id)
+        {
+		    if (id==null||id==Guid.Empty)
+            {
+                throw new ParameNullException("ID不能为空");
+            }
+            return Get<${ClassNameEntity}>(id);
+        }
+
+        /// <summary>
+        /// 保存实体
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="hcs"></param>
+        /// <param name="isNew"></param>
+        /// <returns></returns>
+        public bool Save${Name}(${ClassNameEntity} obj,HttpContextSession hcs,bool isNew = false)
+        { 
+		    if (obj == null)
+            {
+                throw new  ParameNullException("实体不能为空");
+            }
+            if (isNew)
+            { 
+				obj.${PrivatyKey} = MyString.GenerateGuid(); 
+#foreach( $Property in $Propertys ) 
+#if($Property.Name=="CreatedBy")
+				obj.${Property.Name} =  hcs.UserName;	 
+#end##
+#if($Property.Name=="CreatedOn")
+				obj.${Property.Name} =  DateTime.Now;	 
+#end##
+#if($Property.Name=="IsDisable")
+				obj.${Property.Name} =  0;	 
+#end##
+#if($Property.Name=="IsDeleted")
+				obj.${Property.Name} =  0;	 
+#end##
+#end##              
+            }
+			#foreach( $Property in $Propertys ) 
+#if($Property.Name=="ModifyBy")
+			obj.${Property.Name} =  hcs.UserName;	 
+#end##
+#if($Property.Name=="CreatedOn")
+			obj.${Property.Name} =  DateTime.Now;	 
+#end##   
+#end## 
+            if (isNew)
+            {
+                return Insert<${ClassNameEntity}>(obj);
+            }
+            else
+            {
+                return Update<${ClassNameEntity}>(obj);
+            }
+        }
+        /// <summary>
+        /// 校验是否存在
+        /// </summary>
+        /// <param name="colName"></param>
+        /// <param name="colVal"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public bool CheckOnly(string colName,string colVal,Guid? key=null)
+        {   
+		    if (string.IsNullOrEmpty(colVal))
+            {
+                throw new ParameNullException("colVal 不能为空");
+            }
+            if (string.IsNullOrEmpty(colName))
+            {
+                throw new ParameNullException("colName 不能为空");
+            }
+            string sql = string.Format("SELECT top 1 1 FROM $TableName WHERE {0}=@ColVal",colName);
+            if(key!=null && key != Guid.Empty)
+            {
+                sql += " and   ${PrivatyKey}<>@Key ";
+            }
+            int i = ExecuteScalar<int>(sql, new { ColVal = colVal, Key = key });
+            if (i > 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 删除用户
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public bool Deleted(Guid id)
+        { 
+		    if (id == null || id == Guid.Empty)
+            {
+                throw new ParameNullException("ID不能为空");
+            }
+            return Delete<${ClassNameEntity}>(id);
+        }
+        /// <summary>
+        /// 分页获取数据
+        /// </summary>
+        /// <param name="page"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="keyWord"></param>
+        /// <returns></returns>
+        public ResultLayUIList GetList(int page,int pageSize,string keyWord="")
+        {
+            int skip = PagingHelper.GetSkip(page,pageSize);
+
+            ResultLayUIList rl = new ResultLayUIList();
+            IDbConnection conn = GetConnection(WriteAndRead.Read);
+            string sql = @"SELECT * FROM (
+                              SELECT *,ROW_NUMBER()OVER(ORDER BY  ${PrivatyKey} ) rowNum FROM ${TableName} WHERE (1=1)
+                            ) bb WHERE bb.rowNum>=@Skip AND bb.rowNum<=@PageEnd";
+            string strWhere = " 1=1 ";
+            if (!string.IsNullOrEmpty(keyWord))
+            {
+                //strWhere += " and UserName like '%'+ @KeyWord +'%' ";
+            }
+            rl.data = conn.FindBySql<PUser>(sql.Replace("1=1", strWhere), new { Skip = skip, PageEnd = PagingHelper.GetEndIndex(page, pageSize), KeyWord = keyWord });
+            sql = @"   SELECT count(*) FROM ${TableName} WHERE (1=1) ";
+            rl.count = conn.ExecuteScalar<int>(sql.Replace("1=1", strWhere), new { KeyWord = keyWord });
+            return rl;
+        }
+
+    }
+}

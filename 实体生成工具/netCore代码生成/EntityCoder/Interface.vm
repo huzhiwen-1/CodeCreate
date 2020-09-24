@@ -1,0 +1,19 @@
+﻿using ${nameSpace}.Entity;
+using System;
+using System.Collections.Generic;
+using System.Text; 
+using Slisoft.Utility.Units;
+using Slisoft.Utility;
+using ${nameSpace}.Models.Session;
+
+namespace  ${nameSpace}.Interface
+{
+	 public interface I${ClassName} :IBaseService
+	{  
+		 public $ClassNameEntity GetEntity(Guid id); 
+		 public bool Save${Name}($ClassNameEntity obj, HttpContextSession hcs, bool isNew = false); 
+		 public bool CheckOnly(string colName, string colVal, Guid? key = null);
+		 public bool Deleted(Guid id);
+		 public ResultLayUIList GetList(int page, int pageSize, string keyWord = "");
+    } 
+}
